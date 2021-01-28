@@ -1,8 +1,10 @@
-# This workflow will do a clean install of node dependencies, lint the source code and run tests
-
 name: Continuous Integration
 
-on: pull_request
+on: 
+  pull_request:
+  push:
+    branches: 
+      - main
 
 jobs:
   test-and-lint:
