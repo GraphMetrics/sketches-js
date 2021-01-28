@@ -15,8 +15,6 @@ interface BaseSketchConfig {
     mapping: Mapping;
     /** Storage for values */
     store: DenseStore;
-    /** The number of zeroes added to the sketch */
-    zeroCount: number;
 }
 
 /** Base class for DDSketch*/
@@ -25,8 +23,6 @@ class BaseDDSketch {
     mapping: Mapping;
     /** Storage for values */
     store: DenseStore;
-    /** The count of zero values */
-    zeroCount: number;
     /** The minimum value seen by the sketch */
     min: number;
     /** The maximum value seen by the sketch */
@@ -36,13 +32,11 @@ class BaseDDSketch {
     /** The sum of the values seen by the sketch */
     sum: number;
 
-    constructor({ mapping, store, zeroCount }: BaseSketchConfig) {
+    constructor({ mapping, store }: BaseSketchConfig) {
         this.mapping = mapping;
         this.store = store;
 
-        this.zeroCount = zeroCount;
-
-        this.count = this.zeroCount + this.store.count;
+        this.count = this.store.count;
         this.min = Infinity;
         this.max = -Infinity;
         this.sum = 0;
@@ -57,7 +51,10 @@ class BaseDDSketch {
      * @throws Error if `weight` is 0 or negative
      */
     accept(value: number, weight = 1): void {
-        if (value < 0 || value > this.mapping.maxPossible) {
+        if (
+            value < this.mapping.minPossible ||
+            value > this.mapping.maxPossible
+        ) {
             throw new Error(
                 'Input value is outside the range that is tracked by the sketch'
             );
@@ -67,12 +64,8 @@ class BaseDDSketch {
             throw new Error('Weight must be a positive number');
         }
 
-        if (value > this.mapping.minPossible) {
-            const key = this.mapping.key(value);
-            this.store.add(key, weight);
-        } else {
-            this.zeroCount += weight;
-        }
+        const key = this.mapping.key(value);
+        this.store.add(key, weight);
 
         /* Keep track of summary stats */
         this.count += weight;
@@ -96,14 +89,8 @@ class BaseDDSketch {
         }
 
         const rank = quantile * (this.count - 1);
-
-        let quantileValue = 0;
-        if (rank < this.zeroCount) {
-            return 0;
-        } else {
-            const key = this.store.keyAtRank(rank - this.zeroCount);
-            quantileValue = this.mapping.value(key);
-        }
+        const key = this.store.keyAtRank(rank);
+        const quantileValue = this.mapping.value(key);
 
         return quantileValue;
     }
@@ -160,7 +147,6 @@ class BaseDDSketch {
      */
     _copy(sketch: DDSketch): void {
         this.store.copy(sketch.store);
-        this.zeroCount = sketch.zeroCount;
         this.min = sketch.min;
         this.max = sketch.max;
         this.count = sketch.count;
@@ -192,6 +178,6 @@ export class DDSketch extends BaseDDSketch {
         const mapping = new LogarithmicMapping(relativeAccuracy);
         const store = new DenseStore();
 
-        super({ mapping, store, zeroCount: 0 });
+        super({ mapping, store });
     }
 }
