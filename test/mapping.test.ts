@@ -11,6 +11,7 @@ import {
     LinearlyInterpolatedMapping,
     CubicallyInterpolatedMapping
 } from '../src/ddsketch/mapping';
+import { MAX_INT_16, MIN_INT_16 } from '../src/ddsketch/mapping/KeyMapping';
 
 describe('Mapping', () => {
     const relativeAccuracyMultiplier = 1 - Math.sqrt(2) * 1e-1;
@@ -107,6 +108,16 @@ describe('Mapping', () => {
                 expect(mapping.key(1)).toEqual(offset);
             }
         });
+
+        it('is within bounds', () => {
+            const mapping = new LogarithmicMapping(0.01);
+
+            const minIndex = mapping.key(mapping.minPossible);
+            const maxIndex = mapping.key(mapping.maxPossible);
+
+            expect(minIndex).toBeGreaterThan(MIN_INT_16);
+            expect(maxIndex).toBeLessThan(MAX_INT_16);
+        });
     });
 
     describe('LinearlyInterpolatedMapping', () => {
@@ -126,6 +137,16 @@ describe('Mapping', () => {
                 relativeAccuracy *= relativeAccuracyMultiplier;
             }
         });
+
+        it('is within bounds', () => {
+            const mapping = new LinearlyInterpolatedMapping(0.01);
+
+            const minIndex = mapping.key(mapping.minPossible);
+            const maxIndex = mapping.key(mapping.maxPossible);
+
+            expect(minIndex).toBeGreaterThan(MIN_INT_16);
+            expect(maxIndex).toBeLessThan(MAX_INT_16);
+        });
     });
 
     describe('CubicallyInterpolatedMapping', () => {
@@ -144,6 +165,16 @@ describe('Mapping', () => {
                 );
                 relativeAccuracy *= relativeAccuracyMultiplier;
             }
+        });
+
+        it('is within bounds', () => {
+            const mapping = new CubicallyInterpolatedMapping(0.01);
+
+            const minIndex = mapping.key(mapping.minPossible);
+            const maxIndex = mapping.key(mapping.maxPossible);
+
+            expect(minIndex).toBeGreaterThan(MIN_INT_16);
+            expect(maxIndex).toBeLessThan(MAX_INT_16);
         });
     });
 });

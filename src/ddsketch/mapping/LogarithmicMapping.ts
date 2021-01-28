@@ -5,7 +5,7 @@
  * Copyright 2021 GraphMetrics for modifications
  */
 
-import { KeyMapping } from './KeyMapping';
+import { KeyMapping, MIN_INT_16, MAX_INT_16 } from './KeyMapping';
 
 /**
  * A memory-optimal KeyMapping, i.e., given a targeted relative accuracy, it
@@ -16,6 +16,14 @@ export class LogarithmicMapping extends KeyMapping {
     constructor(relativeAccuracy: number, offset = 0) {
         super(relativeAccuracy, offset);
         this._multiplier *= Math.log(2);
+        this.minPossible = Math.max(
+            Math.pow(2, (MIN_INT_16 - this._offset) / this._multiplier + 1),
+            this.minPossible
+        );
+        this.maxPossible = Math.min(
+            Math.pow(2, (MAX_INT_16 - this._offset) / this._multiplier - 1),
+            this.maxPossible
+        );
     }
 
     _logGamma(value: number): number {

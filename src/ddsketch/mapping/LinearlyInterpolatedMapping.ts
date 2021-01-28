@@ -5,7 +5,7 @@
  * Copyright 2021 GraphMetrics for modifications
  */
 
-import { KeyMapping } from './KeyMapping';
+import { KeyMapping, MAX_INT_16, MIN_INT_16 } from './KeyMapping';
 import frexp from 'math-float64-frexp';
 import ldexp from 'math-float64-ldexp';
 
@@ -18,6 +18,24 @@ import ldexp from 'math-float64-ldexp';
 export class LinearlyInterpolatedMapping extends KeyMapping {
     constructor(relativeAccuracy: number, offset = 0) {
         super(relativeAccuracy, offset);
+        this.minPossible = Math.max(
+            Math.pow(
+                2,
+                (MIN_INT_16 - this._offset) / this._multiplier -
+                    this._log2Approx(1) +
+                    1
+            ),
+            this.minPossible
+        );
+        this.maxPossible = Math.min(
+            Math.pow(
+                2,
+                (MAX_INT_16 - this._offset) / this._multiplier -
+                    this._log2Approx(1) -
+                    1
+            ),
+            this.maxPossible
+        );
     }
 
     /**

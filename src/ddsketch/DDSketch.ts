@@ -57,13 +57,14 @@ class BaseDDSketch {
      * @throws Error if `weight` is 0 or negative
      */
     accept(value: number, weight = 1): void {
-        if (weight <= 0) {
-            throw new Error('Weight must be a positive number');
-        }
-        if (value < 1 || value > this.mapping.maxPossible) {
+        if (value < 0 || value > this.mapping.maxPossible) {
             throw new Error(
                 'Input value is outside the range that is tracked by the sketch'
             );
+        }
+
+        if (weight <= 0) {
+            throw new Error('Weight must be a positive number');
         }
 
         if (value > this.mapping.minPossible) {

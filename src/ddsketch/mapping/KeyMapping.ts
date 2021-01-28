@@ -10,6 +10,8 @@ import type { Mapping } from './types';
 // 1.1125369292536007e-308
 const MIN_SAFE_FLOAT = Math.pow(2, -1023);
 const MAX_SAFE_FLOAT = Number.MAX_VALUE;
+export const MIN_INT_16 = -32767;
+export const MAX_INT_16 = 32767;
 
 /**
  * A mapping between values and integer indices that imposes relative accuracy
