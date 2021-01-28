@@ -1,19 +1,10 @@
 /*
  * Unless explicitly stated otherwise all files in this repository are licensed
  * under the Apache 2.0 license (see LICENSE).
- * This product includes software developed at Datadog (https://www.datadoghq.com/).
- * Copyright 2020 Datadog, Inc.
+ * Copyright 2020 Datadog, Inc. for original work
+ * Copyright 2021 GraphMetrics for modifications
  */
 
-import {
-    LinearlyInterpolatedMapping,
-    LogarithmicMapping,
-    CubicallyInterpolatedMapping
-} from './index';
-import {
-    IIndexMapping,
-    IndexMapping as ProtoIndexMapping
-} from '../proto/compiled';
 import type { Mapping } from './types';
 
 // 1.1125369292536007e-308
@@ -77,45 +68,6 @@ export class KeyMapping implements Mapping {
         return this._powGamma(key - this._offset) * (2 / (1 + this.gamma));
     }
 
-    toProto(): IIndexMapping {
-        return ProtoIndexMapping.create({
-            gamma: this.gamma,
-            indexOffset: this._offset,
-            interpolation: this._protoInterpolation()
-        });
-    }
-
-    static fromProto(protoMapping?: IIndexMapping | null): KeyMapping {
-        if (
-            !protoMapping ||
-            /* Double equals (==) is intentional here to check for
-             * `null` | `undefined` without including `0` */
-            protoMapping.gamma == null ||
-            protoMapping.indexOffset == null
-        ) {
-            throw Error('Failed to decode mapping from protobuf');
-        }
-
-        const { interpolation, gamma, indexOffset } = protoMapping;
-
-        switch (interpolation) {
-            case ProtoIndexMapping.Interpolation.NONE:
-                return LogarithmicMapping.fromGammaOffset(gamma, indexOffset);
-            case ProtoIndexMapping.Interpolation.LINEAR:
-                return LinearlyInterpolatedMapping.fromGammaOffset(
-                    gamma,
-                    indexOffset
-                );
-            case ProtoIndexMapping.Interpolation.CUBIC:
-                return CubicallyInterpolatedMapping.fromGammaOffset(
-                    gamma,
-                    indexOffset
-                );
-            default:
-                throw Error('Unrecognized mapping when decoding from protobuf');
-        }
-    }
-
     /** Return (an approximation of) the logarithm of the value base gamma */
     _logGamma(value: number): number {
         return Math.log2(value) * this._multiplier;
@@ -124,9 +76,5 @@ export class KeyMapping implements Mapping {
     /** Return (an approximation of) gamma to the power value */
     _powGamma(value: number): number {
         return Math.pow(2, value / this._multiplier);
-    }
-
-    _protoInterpolation(): ProtoIndexMapping.Interpolation {
-        return ProtoIndexMapping.Interpolation.NONE;
     }
 }

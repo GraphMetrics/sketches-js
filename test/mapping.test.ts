@@ -1,11 +1,11 @@
 /*
  * Unless explicitly stated otherwise all files in this repository are licensed
  * under the Apache 2.0 license (see LICENSE).
- * This product includes software developed at Datadog (https://www.datadoghq.com/).
- * Copyright 2020 Datadog, Inc.
+ * Copyright 2020 Datadog, Inc. for original work
+ * Copyright 2021 GraphMetrics for modifications
  */
 
-import { KeyMapping, Mapping } from '../src/ddsketch/mapping';
+import { Mapping } from '../src/ddsketch/mapping';
 import {
     LogarithmicMapping,
     LinearlyInterpolatedMapping,
@@ -105,34 +105,6 @@ describe('Mapping', () => {
             for (const offset of testOffsets) {
                 const mapping = new LogarithmicMapping(0.01, offset);
                 expect(mapping.key(1)).toEqual(offset);
-            }
-        });
-
-        it('can be serialized to and from a protobuf', () => {
-            const relativeAccuracies = [1e-1, 1e-2, 1e-8];
-
-            for (const relativeAccuracy of relativeAccuracies) {
-                for (const offset of testOffsets) {
-                    const mapping = new LogarithmicMapping(
-                        relativeAccuracy,
-                        offset
-                    );
-                    const decodedMapping = KeyMapping.fromProto(
-                        mapping.toProto()
-                    );
-                    expect(decodedMapping.constructor.name).toEqual(
-                        mapping.constructor.name
-                    );
-                    expect(
-                        Math.abs(
-                            decodedMapping.relativeAccuracy -
-                                mapping.relativeAccuracy
-                        )
-                    ).toBeLessThan(1e-7);
-                    expect(
-                        Math.abs(decodedMapping.value(0) - mapping.value(0))
-                    ).toBeLessThan(1e-7);
-                }
             }
         });
     });

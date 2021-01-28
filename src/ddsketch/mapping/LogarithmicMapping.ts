@@ -1,12 +1,11 @@
 /*
  * Unless explicitly stated otherwise all files in this repository are licensed
  * under the Apache 2.0 license (see LICENSE).
- * This product includes software developed at Datadog (https://www.datadoghq.com/).
- * Copyright 2020 Datadog, Inc.
+ * Copyright 2020 Datadog, Inc. for original work
+ * Copyright 2021 GraphMetrics for modifications
  */
 
 import { KeyMapping } from './KeyMapping';
-import { IndexMapping as IndexMappingProto } from '../proto/compiled';
 
 /**
  * A memory-optimal KeyMapping, i.e., given a targeted relative accuracy, it
@@ -25,9 +24,5 @@ export class LogarithmicMapping extends KeyMapping {
 
     _powGamma(value: number): number {
         return Math.pow(2, value / this._multiplier);
-    }
-
-    _protoInterpolation(): IndexMappingProto.Interpolation {
-        return IndexMappingProto.Interpolation.NONE;
     }
 }

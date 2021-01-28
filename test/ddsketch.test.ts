@@ -1,30 +1,24 @@
 /*
  * Unless explicitly stated otherwise all files in this repository are licensed
  * under the Apache 2.0 license (see LICENSE).
- * This product includes software developed at Datadog (https://www.datadoghq.com/).
- * Copyright 2020 Datadog, Inc.
+ * Copyright 2020 Datadog, Inc. for original work
+ * Copyright 2021 GraphMetrics for modifications
  */
 
 import { DDSketch } from '../src/ddsketch';
 import {
     generateDecreasing,
     generateIncreasing,
-    generateRandom,
     generateRandomIntegers,
     generateConstant,
-    generateConstantNegative,
-    generatePositiveAndNegative,
     Counter
 } from './datasets';
 
 const datasets = [
     generateIncreasing,
     generateDecreasing,
-    generateRandom,
     generateRandomIntegers,
-    generateConstant,
-    generateConstantNegative,
-    generatePositiveAndNegative
+    generateConstant
 ];
 const testSizes = [3, 5, 10, 100, 1000, 5000];
 const testQuantiles = [0, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99, 0.999, 1];
@@ -91,7 +85,7 @@ describe('DDSketch', () => {
         }
         sketch.accept(100, 110);
 
-        const dataMedian = 99;
+        const dataMedian = 101;
         const sketchMedian = sketch.getValueAtQuantile(0.5);
         const error = Math.abs(sketchMedian - dataMedian);
 
@@ -99,24 +93,8 @@ describe('DDSketch', () => {
             error - relativeAccuracy * Math.abs(dataMedian)
         ).toBeLessThanOrEqual(1e-15);
         expect(Math.abs(sketch.count - 110 * 2)).toBeLessThan(1e-5);
-        expect(sketch.sum).toEqual(5445 + 11000);
-        expect(Math.abs(sketch.sum / sketch.count - 74.75)).toBeLessThan(1e-5);
-    });
-
-    it('can be serialized to and from a protobuf', () => {
-        const data = generateIncreasing(100);
-        const sketch = new DDSketch({ relativeAccuracy });
-
-        for (const value of data) {
-            sketch.accept(value);
-        }
-
-        evaluateSketchAccuracy(sketch, data);
-
-        const encodedProto = sketch.toProto();
-        const decodedProto = DDSketch.fromProto(encodedProto);
-
-        evaluateSketchAccuracy(decodedProto, data);
+        expect(sketch.sum).toEqual(5555 + 11000);
+        expect(Math.abs(sketch.sum / sketch.count - 75.25)).toBeLessThan(1e-5);
     });
 
     describe('datasets', () => {
@@ -194,8 +172,8 @@ describe('DDSketch', () => {
         });
 
         it('does not modify the sketch that is passed in as a parameter', () => {
-            const data1 = generateRandom(100);
-            const data2 = generateRandom(50);
+            const data1 = generateRandomIntegers(100);
+            const data2 = generateRandomIntegers(50);
             const sketch1 = new DDSketch({
                 relativeAccuracy
             });

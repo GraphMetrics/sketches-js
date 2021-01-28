@@ -1,14 +1,13 @@
 /*
  * Unless explicitly stated otherwise all files in this repository are licensed
  * under the Apache 2.0 license (see LICENSE).
- * This product includes software developed at Datadog (https://www.datadoghq.com/).
- * Copyright 2020 Datadog, Inc.
+ * Copyright 2020 Datadog, Inc. for original work
+ * Copyright 2021 GraphMetrics for modifications
  */
 
 import { KeyMapping } from './KeyMapping';
 import frexp from 'math-float64-frexp';
 import ldexp from 'math-float64-ldexp';
-import { IndexMapping as IndexMappingProto } from '../proto/compiled';
 
 /**
  * A fast KeyMapping that approximates the memory-optimal LogarithmicMapping by
@@ -65,9 +64,5 @@ export class CubicallyInterpolatedMapping extends KeyMapping {
 
     _powGamma(value: number): number {
         return this._cubicExp2Approx(value / this._multiplier);
-    }
-
-    _protoInterpolation(): IndexMappingProto.Interpolation {
-        return IndexMappingProto.Interpolation.CUBIC;
     }
 }

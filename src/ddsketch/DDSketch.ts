@@ -1,23 +1,20 @@
 /*
  * Unless explicitly stated otherwise all files in this repository are licensed
  * under the Apache 2.0 license (see LICENSE).
- * This product includes software developed at Datadog (https://www.datadoghq.com/).
- * Copyright 2020 Datadog, Inc.
+ * Copyright 2020 Datadog, Inc. for original work
+ * Copyright 2021 GraphMetrics for modifications
  */
 
 import { DenseStore } from './store';
-import { Mapping, KeyMapping, LogarithmicMapping } from './mapping';
-import { DDSketch as ProtoDDSketch } from './proto/compiled';
+import { Mapping, LogarithmicMapping } from './mapping';
 
 const DEFAULT_RELATIVE_ACCURACY = 0.01;
 
 interface BaseSketchConfig {
     /** The mapping between values and indicies for the sketch */
     mapping: Mapping;
-    /** Storage for positive values */
+    /** Storage for values */
     store: DenseStore;
-    /** Storage for negative values */
-    negativeStore: DenseStore;
     /** The number of zeroes added to the sketch */
     zeroCount: number;
 }
@@ -26,10 +23,8 @@ interface BaseSketchConfig {
 class BaseDDSketch {
     /** The mapping between values and indicies for the sketch */
     mapping: Mapping;
-    /** Storage for positive values */
+    /** Storage for values */
     store: DenseStore;
-    /** Storage for negative values */
-    negativeStore: DenseStore;
     /** The count of zero values */
     zeroCount: number;
     /** The minimum value seen by the sketch */
@@ -41,20 +36,13 @@ class BaseDDSketch {
     /** The sum of the values seen by the sketch */
     sum: number;
 
-    constructor({
-        mapping,
-        store,
-        negativeStore,
-        zeroCount
-    }: BaseSketchConfig) {
+    constructor({ mapping, store, zeroCount }: BaseSketchConfig) {
         this.mapping = mapping;
         this.store = store;
-        this.negativeStore = negativeStore;
 
         this.zeroCount = zeroCount;
 
-        this.count =
-            this.negativeStore.count + this.zeroCount + this.store.count;
+        this.count = this.zeroCount + this.store.count;
         this.min = Infinity;
         this.max = -Infinity;
         this.sum = 0;
@@ -70,15 +58,17 @@ class BaseDDSketch {
      */
     accept(value: number, weight = 1): void {
         if (weight <= 0) {
-            throw Error('Weight must be a positive number');
+            throw new Error('Weight must be a positive number');
+        }
+        if (value < 1 || value > this.mapping.maxPossible) {
+            throw new Error(
+                'Input value is outside the range that is tracked by the sketch'
+            );
         }
 
         if (value > this.mapping.minPossible) {
             const key = this.mapping.key(value);
             this.store.add(key, weight);
-        } else if (value < -this.mapping.minPossible) {
-            const key = this.mapping.key(-value);
-            this.negativeStore.add(key, weight);
         } else {
             this.zeroCount += weight;
         }
@@ -107,16 +97,10 @@ class BaseDDSketch {
         const rank = quantile * (this.count - 1);
 
         let quantileValue = 0;
-        if (rank < this.negativeStore.count) {
-            const reversedRank = this.negativeStore.count - rank - 1;
-            const key = this.negativeStore.keyAtRank(reversedRank, false);
-            quantileValue = -this.mapping.value(key);
-        } else if (rank < this.zeroCount + this.negativeStore.count) {
+        if (rank < this.zeroCount) {
             return 0;
         } else {
-            const key = this.store.keyAtRank(
-                rank - this.zeroCount - this.negativeStore.count
-            );
+            const key = this.store.keyAtRank(rank - this.zeroCount);
             quantileValue = this.mapping.value(key);
         }
 
@@ -175,41 +159,11 @@ class BaseDDSketch {
      */
     _copy(sketch: DDSketch): void {
         this.store.copy(sketch.store);
-        this.negativeStore.copy(sketch.negativeStore);
         this.zeroCount = sketch.zeroCount;
         this.min = sketch.min;
         this.max = sketch.max;
         this.count = sketch.count;
         this.sum = sketch.sum;
-    }
-
-    /** Serialize a DDSketch to protobuf format */
-    toProto(): Uint8Array {
-        const message = ProtoDDSketch.create({
-            mapping: this.mapping.toProto(),
-            positiveValues: this.store.toProto(),
-            negativeValues: this.negativeStore.toProto(),
-            zeroCount: this.zeroCount
-        });
-        return ProtoDDSketch.encode(message).finish();
-    }
-
-    /**
-     * Deserialize a DDSketch from protobuf data
-     *
-     * Note: `fromProto` currently loses summary statistics for the original
-     * sketch (i.e. `min`, `max`)
-     *
-     * @param buffer Byte array containing DDSketch in protobuf format (from DDSketch.toProto)
-     */
-    static fromProto(buffer: Uint8Array): DDSketch {
-        const decoded = ProtoDDSketch.decode(buffer);
-        const mapping = KeyMapping.fromProto(decoded.mapping);
-        const store = DenseStore.fromProto(decoded.positiveValues);
-        const negativeStore = DenseStore.fromProto(decoded.negativeValues);
-        const zeroCount = decoded.zeroCount;
-
-        return new BaseDDSketch({ mapping, store, negativeStore, zeroCount });
     }
 }
 
@@ -236,8 +190,7 @@ export class DDSketch extends BaseDDSketch {
     ) {
         const mapping = new LogarithmicMapping(relativeAccuracy);
         const store = new DenseStore();
-        const negativeStore = new DenseStore();
 
-        super({ mapping, store, negativeStore, zeroCount: 0 });
+        super({ mapping, store, zeroCount: 0 });
     }
 }

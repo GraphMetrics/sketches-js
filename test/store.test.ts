@@ -1,8 +1,8 @@
 /*
  * Unless explicitly stated otherwise all files in this repository are licensed
  * under the Apache 2.0 license (see LICENSE).
- * This product includes software developed at Datadog (https://www.datadoghq.com/).
- * Copyright 2020 Datadog, Inc.
+ * Copyright 2020 Datadog, Inc. for original work
+ * Copyright 2021 GraphMetrics for modifications
  */
 
 import {
@@ -14,18 +14,10 @@ import {
     generateDecreasing,
     generateIncreasing,
     generateConstant,
-    generateConstantNegative,
-    generatePositiveAndNegative,
     Counter
 } from './datasets';
 
-const datasets = [
-    generateIncreasing,
-    generateDecreasing,
-    generateConstant,
-    generateConstantNegative,
-    generatePositiveAndNegative
-];
+const datasets = [generateIncreasing, generateDecreasing, generateConstant];
 
 const testBinLimits = [2048];
 const testSizes = [0, 1, 10, 1000];
@@ -68,11 +60,6 @@ describe('Store', () => {
                     }
 
                     evaluateStoreAccuracy(store, data);
-
-                    // Test protobuf conversion
-                    const decodedStore = DenseStore.fromProto(store.toProto());
-
-                    evaluateStoreAccuracy(decodedStore, data);
                 }
             });
         }
