@@ -5,7 +5,7 @@
  * Copyright 2021 GraphMetrics for modifications
  */
 
-export { Store } from './types';
+export { Bin, Store } from './types';
 export { DenseStore } from './DenseStore';
 export { CollapsingLowestDenseStore } from './CollapsingLowestDenseStore';
 export { CollapsingHighestDenseStore } from './CollapsingHighestDenseStore';

@@ -5,7 +5,7 @@
  * Copyright 2021 GraphMetrics for modifications
  */
 
-import { DenseStore } from './store';
+import { Bin, DenseStore } from './store';
 import { Mapping, LogarithmicMapping } from './mapping';
 
 const DEFAULT_RELATIVE_ACCURACY = 0.01;
@@ -142,7 +142,7 @@ class BaseDDSketch {
     /*
      * Return an iterator on the bins
      */
-    bins() {
+    bins(): IterableIterator<Bin> {
         return this.store.iterate();
     }
 
