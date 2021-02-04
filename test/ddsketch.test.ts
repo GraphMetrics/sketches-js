@@ -204,4 +204,46 @@ describe('DDSketch', () => {
             evaluateSketchAccuracy(sketch2, [...data1, ...data2]);
         });
     });
+
+    describe('iterating sketches', () => {
+        it('allows one bin to be iterated upon', () => {
+            const data = generateConstant(10);
+            const sketch = new DDSketch({
+                relativeAccuracy
+            });
+
+            for (const value of data) {
+                sketch.accept(value);
+            }
+
+            let nbrBins = 0;
+            const summary: Record<number, number> = {};
+            for (const bin of sketch.bins()) {
+                nbrBins += 1;
+                summary[bin.index] = bin.count;
+            }
+
+            expect(nbrBins).toEqual(1);
+            expect(summary[38]).toEqual(10);
+        });
+
+        it('allows multiple bins to be iterated upon', () => {
+            const data = generateIncreasing(100);
+            const sketch = new DDSketch({
+                relativeAccuracy
+            });
+
+            for (const value of data) {
+                sketch.accept(value);
+            }
+
+            let nbrBins = 0;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            for (const bin of sketch.bins()) {
+                nbrBins += 1;
+            }
+
+            expect(nbrBins).toEqual(33);
+        });
+    });
 });

@@ -5,6 +5,11 @@
  * Copyright 2021 GraphMetrics for modifications
  */
 
+export interface Bin {
+    index: number;
+    count: number;
+}
+
 export interface Store<S> {
     /** Update the counter at the specified index key, growing the number of bins if necessary */
     add: (key: number) => void;
@@ -16,6 +21,8 @@ export interface Store<S> {
     length: () => number;
     /** Return the key for the value at the given rank */
     keyAtRank: (rank: number, reverse?: boolean) => void;
+    /** Returns an iterator on the bins */
+    iterate: () => IterableIterator<Bin>;
     /** The total number of values added to the store */
     count: number;
 }

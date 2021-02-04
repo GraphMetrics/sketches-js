@@ -6,7 +6,7 @@
  */
 
 import { sumOfRange } from './util';
-import type { Store } from './types';
+import type { Bin, Store } from './types';
 
 /** The default number of bins to grow when necessary */
 const CHUNK_SIZE = 128;
@@ -143,6 +143,17 @@ export class DenseStore implements Store<DenseStore> {
         this.minKey = store.minKey;
         this.maxKey = store.maxKey;
         this.offset = store.offset;
+    }
+
+    *iterate(): IterableIterator<Bin> {
+        for (let key = this.minKey; key <= this.maxKey; key++) {
+            if (this.bins[key - this.offset] > 0) {
+                yield {
+                    index: key,
+                    count: this.bins[key - this.offset]
+                };
+            }
+        }
     }
 
     /**

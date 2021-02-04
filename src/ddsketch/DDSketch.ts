@@ -139,6 +139,10 @@ class BaseDDSketch {
         return this.mapping.gamma === sketch.mapping.gamma;
     }
 
+    bins() {
+        return this.store.iterate();
+    }
+
     /**
      * Helper method to copy the contents of the parameter `store` into this store
      * @see DDSketch.merge to merge two sketches safely
