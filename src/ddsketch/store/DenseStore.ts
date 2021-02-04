@@ -145,6 +145,9 @@ export class DenseStore implements Store<DenseStore> {
         this.offset = store.offset;
     }
 
+    /**
+     * Return an iterator on the bins
+     */
     *iterate(): IterableIterator<Bin> {
         for (let key = this.minKey; key <= this.maxKey; key++) {
             if (this.bins[key - this.offset] > 0) {

@@ -139,6 +139,9 @@ class BaseDDSketch {
         return this.mapping.gamma === sketch.mapping.gamma;
     }
 
+    /*
+     * Return an iterator on the bins
+     */
     bins() {
         return this.store.iterate();
     }

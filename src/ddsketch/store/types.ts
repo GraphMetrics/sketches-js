@@ -21,7 +21,7 @@ export interface Store<S> {
     length: () => number;
     /** Return the key for the value at the given rank */
     keyAtRank: (rank: number, reverse?: boolean) => void;
-    /** Returns an iterator on the bins */
+    /** Return an iterator on the bins */
     iterate: () => IterableIterator<Bin>;
     /** The total number of values added to the store */
     count: number;
