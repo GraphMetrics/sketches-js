@@ -6,3 +6,5 @@
  */
 
 export { DDSketch } from './DDSketch';
+export * from './mapping';
+export * from './store';

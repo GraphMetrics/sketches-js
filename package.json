@@ -1,6 +1,6 @@
 {
     "name": "@graphmetrics/sketches-js",
-    "version": "0.2.1",
+    "version": "0.3.0",
     "description": "TypeScript implementation of DDSketch, a distributed quantile sketch algorithm ",
     "license": "Apache-2.0",
     "repository": "https://github.com/GraphMetrics/sketches-js",

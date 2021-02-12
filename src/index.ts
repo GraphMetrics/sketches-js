@@ -5,4 +5,4 @@
  * Copyright 2021 GraphMetrics for modifications
  */
 
-export { DDSketch } from './ddsketch';
+export * from './ddsketch';
