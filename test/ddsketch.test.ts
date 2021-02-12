@@ -224,7 +224,7 @@ describe('DDSketch', () => {
             }
 
             expect(nbrBins).toEqual(1);
-            expect(summary[38]).toEqual(10);
+            expect(summary[37]).toEqual(10);
         });
 
         it('allows multiple bins to be iterated upon', () => {

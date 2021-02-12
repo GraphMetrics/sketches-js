@@ -5,11 +5,16 @@
  * Copyright 2021 GraphMetrics for modifications
  */
 
-export interface Mapping {
-    relativeAccuracy: number;
-    gamma: number;
-    minPossible: number;
-    maxPossible: number;
-    key: (value: number) => number;
+export interface IndexMapping {
+    readonly relativeAccuracy: number;
+    /** The smallest possible value the sketch can distinguish from 0 */
+    readonly minIndexableValue: number;
+    /** The largest possible value the sketch can handle */
+    readonly maxIndexableValue: number;
+    /** Retrieve the index specifying the bucket for a `value` */
+    index: (value: number) => number;
+    /** Retrieve the value represented by the bucket at `key` */
     value: (key: number) => number;
+    /** Compare two mappings */
+    equals: (other: IndexMapping) => boolean;
 }

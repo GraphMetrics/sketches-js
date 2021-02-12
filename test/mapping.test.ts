@@ -5,19 +5,13 @@
  * Copyright 2021 GraphMetrics for modifications
  */
 
-import { Mapping } from '../src/ddsketch/mapping';
-import {
-    LogarithmicMapping,
-    LinearlyInterpolatedMapping,
-    CubicallyInterpolatedMapping
-} from '../src/ddsketch/mapping';
-import { MAX_INT_16, MIN_INT_16 } from '../src/ddsketch/mapping/KeyMapping';
+import { IndexMapping, LogarithmicMapping } from '../src/ddsketch/mapping';
+import { MAX_INT_16, MIN_INT_16 } from '../src/ddsketch/mapping/helpers';
 
 describe('Mapping', () => {
     const relativeAccuracyMultiplier = 1 - Math.sqrt(2) * 1e-1;
     const minRelativeAccuracy = 1e-8;
     const INITIAL_RELATIVE_ACCURACY = 1 - 1e-3;
-    const testOffsets = [0, 1, -12.23, 7768.3];
 
     const calculateRelativeError = (
         expectedMin: number,
@@ -46,14 +40,14 @@ describe('Mapping', () => {
         return (actual - expectedMax) / expectedMax;
     };
 
-    const evaluateValueRelativeAccuracy = (mapping: Mapping) => {
+    const evaluateValueRelativeAccuracy = (mapping: IndexMapping) => {
         const valueMultiplier = 2 - Math.sqrt(2) * 1e-1;
         let maxRelativeAccuracy = 0;
-        let value = mapping.minPossible;
+        let value = mapping.minIndexableValue;
 
-        while (value < mapping.maxPossible / valueMultiplier) {
+        while (value < mapping.maxIndexableValue / valueMultiplier) {
             value *= valueMultiplier;
-            const mapValue = mapping.value(mapping.key(value));
+            const mapValue = mapping.value(mapping.index(value));
             const relativeError = calculateRelativeError(
                 value,
                 value,
@@ -64,12 +58,10 @@ describe('Mapping', () => {
                     `\nValue: ${value}\nMapping relativeAccuracy: ${
                         mapping.relativeAccuracy
                     }\nMapping value: ${mapValue}\nRelative error: ${relativeError}\nMapping maxPoss: ${
-                        mapping.maxPossible
+                        mapping.maxIndexableValue
                     }\nMapping minPoss: ${
-                        mapping.minPossible
-                    }\nMapping gamma: ${
-                        mapping.gamma
-                    }\nMapping key: ${mapping.key(value)}`
+                        mapping.minIndexableValue
+                    }\nMapping key: ${mapping.index(value)}`
                 );
             }
             expect(relativeError).toBeLessThan(mapping.relativeAccuracy);
@@ -78,9 +70,9 @@ describe('Mapping', () => {
         maxRelativeAccuracy = Math.max(
             maxRelativeAccuracy,
             calculateRelativeError(
-                mapping.maxPossible,
-                mapping.maxPossible,
-                mapping.value(mapping.key(mapping.maxPossible))
+                mapping.maxIndexableValue,
+                mapping.maxIndexableValue,
+                mapping.value(mapping.index(mapping.maxIndexableValue))
             )
         );
         return maxRelativeAccuracy;
@@ -102,76 +94,11 @@ describe('Mapping', () => {
             }
         });
 
-        it('can be initialized with an offset', () => {
-            for (const offset of testOffsets) {
-                const mapping = new LogarithmicMapping(0.01, offset);
-                expect(mapping.key(1)).toEqual(offset);
-            }
-        });
-
         it('is within bounds', () => {
             const mapping = new LogarithmicMapping(0.01);
 
-            const minIndex = mapping.key(mapping.minPossible);
-            const maxIndex = mapping.key(mapping.maxPossible);
-
-            expect(minIndex).toBeGreaterThan(MIN_INT_16);
-            expect(maxIndex).toBeLessThan(MAX_INT_16);
-        });
-    });
-
-    describe('LinearlyInterpolatedMapping', () => {
-        it('is accurate', () => {
-            let relativeAccuracy = INITIAL_RELATIVE_ACCURACY;
-
-            while (relativeAccuracy >= minRelativeAccuracy) {
-                const mapping = new LinearlyInterpolatedMapping(
-                    relativeAccuracy
-                );
-                const maxRelativeAccuracy = evaluateValueRelativeAccuracy(
-                    mapping
-                );
-                expect(maxRelativeAccuracy).toBeLessThan(
-                    mapping.relativeAccuracy
-                );
-                relativeAccuracy *= relativeAccuracyMultiplier;
-            }
-        });
-
-        it('is within bounds', () => {
-            const mapping = new LinearlyInterpolatedMapping(0.01);
-
-            const minIndex = mapping.key(mapping.minPossible);
-            const maxIndex = mapping.key(mapping.maxPossible);
-
-            expect(minIndex).toBeGreaterThan(MIN_INT_16);
-            expect(maxIndex).toBeLessThan(MAX_INT_16);
-        });
-    });
-
-    describe('CubicallyInterpolatedMapping', () => {
-        it('is accurate', () => {
-            let relativeAccuracy = INITIAL_RELATIVE_ACCURACY;
-
-            while (relativeAccuracy >= minRelativeAccuracy) {
-                const mapping = new CubicallyInterpolatedMapping(
-                    relativeAccuracy
-                );
-                const maxRelativeAccuracy = evaluateValueRelativeAccuracy(
-                    mapping
-                );
-                expect(maxRelativeAccuracy).toBeLessThan(
-                    mapping.relativeAccuracy
-                );
-                relativeAccuracy *= relativeAccuracyMultiplier;
-            }
-        });
-
-        it('is within bounds', () => {
-            const mapping = new CubicallyInterpolatedMapping(0.01);
-
-            const minIndex = mapping.key(mapping.minPossible);
-            const maxIndex = mapping.key(mapping.maxPossible);
+            const minIndex = mapping.index(mapping.minIndexableValue);
+            const maxIndex = mapping.index(mapping.maxIndexableValue);
 
             expect(minIndex).toBeGreaterThan(MIN_INT_16);
             expect(maxIndex).toBeLessThan(MAX_INT_16);

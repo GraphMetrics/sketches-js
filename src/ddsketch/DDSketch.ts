@@ -6,13 +6,13 @@
  */
 
 import { Bin, DenseStore } from './store';
-import { Mapping, LogarithmicMapping } from './mapping';
+import { IndexMapping, LogarithmicMapping } from './mapping';
 
 const DEFAULT_RELATIVE_ACCURACY = 0.01;
 
 interface BaseSketchConfig {
     /** The mapping between values and indicies for the sketch */
-    mapping: Mapping;
+    mapping: IndexMapping;
     /** Storage for values */
     store: DenseStore;
 }
@@ -20,7 +20,7 @@ interface BaseSketchConfig {
 /** Base class for DDSketch*/
 class BaseDDSketch {
     /** The mapping between values and indicies for the sketch */
-    mapping: Mapping;
+    mapping: IndexMapping;
     /** Storage for values */
     store: DenseStore;
     /** The minimum value seen by the sketch */
@@ -52,8 +52,8 @@ class BaseDDSketch {
      */
     accept(value: number, weight = 1): void {
         if (
-            value < this.mapping.minPossible ||
-            value > this.mapping.maxPossible
+            value < this.mapping.minIndexableValue ||
+            value > this.mapping.maxIndexableValue
         ) {
             throw new Error(
                 'Input value is outside the range that is tracked by the sketch'
@@ -64,7 +64,7 @@ class BaseDDSketch {
             throw new Error('Weight must be a positive number');
         }
 
-        const key = this.mapping.key(value);
+        const key = this.mapping.index(value);
         this.store.add(key, weight);
 
         /* Keep track of summary stats */
@@ -136,7 +136,7 @@ class BaseDDSketch {
      * @param sketch The sketch to be merged into the caller sketch
      */
     mergeable(sketch: DDSketch): boolean {
-        return this.mapping.gamma === sketch.mapping.gamma;
+        return this.mapping.equals(sketch.mapping);
     }
 
     /*

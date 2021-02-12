@@ -5,8 +5,7 @@
  * Copyright 2021 GraphMetrics for modifications
  */
 
-export type { Mapping } from './types';
-export { KeyMapping } from './KeyMapping';
+export { IndexMapping } from './types';
 export { LogarithmicMapping } from './LogarithmicMapping';
-export { LinearlyInterpolatedMapping } from './LinearlyInterpolatedMapping';
-export { CubicallyInterpolatedMapping } from './CubicallyInterpolatedMapping';
+// export { LinearlyInterpolatedMapping } from './LinearlyInterpolatedMapping';
+// export { CubicallyInterpolatedMapping } from './CubicallyInterpolatedMapping';
